@@ -829,6 +829,13 @@ static void on_transport_state(pjsip_transport *tp,
 	}
 	break;
 
+    case PJSIP_TP_STATE_SHUTDOWN:
+	break;
+
+    case PJSIP_TP_STATE_DESTROY:
+	sleep(1);
+	break;
+
     default:
 	break;
     }
