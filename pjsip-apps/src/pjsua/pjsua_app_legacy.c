@@ -1017,6 +1017,64 @@ static void ui_add_account(pjsua_transport_config *rtp_cfg)
     }
 }
 
+static void ui_modify_account(pjsua_transport_config *rtp_cfg)
+{
+    char buf[128];
+    int i;
+
+    if (!simple_input("Enter account ID to change", buf, sizeof(buf)))
+	return;
+
+    i = my_atoi(buf);
+
+    if (!pjsua_acc_is_valid(i)) {
+	printf("Invalid account id %d\n", i);
+	return;
+    }
+
+    pj_pool_t *pool = pjsua_pool_create("tmp-pool", 512, 512);
+    pjsua_acc_config orig_cfg;
+    char id[80], registrar[80], realm[80], uname[80], passwd[30];
+    pjsua_acc_config acc_cfg;
+    pj_status_t status;
+
+    status = pjsua_acc_get_config(i, pool, &orig_cfg);
+    if (status != PJ_SUCCESS) {
+	pjsua_perror(THIS_FILE, "Error to get account", status);
+    }
+
+    printf("Current SIP URL: '%s'\n", orig_cfg.id);
+    if (!simple_input("Your SIP URL:", id, sizeof(id)))
+	return;
+    printf("Current registrar URL: '%s'\n", orig_cfg.reg_uri);
+    if (!simple_input("URL of the registrar:", registrar, sizeof(registrar)))
+	return;
+    if (!simple_input("Auth Realm:", realm, sizeof(realm)))
+	return;
+    if (!simple_input("Auth Username:", uname, sizeof(uname)))
+	return;
+    if (!simple_input("Auth Password:", passwd, sizeof(passwd)))
+	return;
+
+    pjsua_acc_config_default(&acc_cfg);
+    acc_cfg.id = pj_str(id);
+    acc_cfg.reg_uri = pj_str(registrar);
+    acc_cfg.cred_count = 1;
+    acc_cfg.cred_info[0].scheme = pj_str("Digest");
+    acc_cfg.cred_info[0].realm = pj_str(realm);
+    acc_cfg.cred_info[0].username = pj_str(uname);
+    acc_cfg.cred_info[0].data_type = 0;
+    acc_cfg.cred_info[0].data = pj_str(passwd);
+
+    acc_cfg.rtp_cfg = *rtp_cfg;
+    app_config_init_video(&acc_cfg);
+
+    status = pjsua_acc_modify(i, &acc_cfg);
+    if (status != PJ_SUCCESS) {
+	pjsua_perror(THIS_FILE, "Error modify account", status);
+    }
+}
+
 static void ui_delete_buddy()
 {
     char buf[128];
@@ -1866,6 +1924,14 @@ void legacy_main(void)
 		ui_delete_buddy();
 	    } else if (menuin[1] == 'a') {
 		ui_delete_account();
+	    } else {
+		printf("Invalid input %s\n", menuin);
+	    }
+	    break;
+
+	case '!':
+	    if (menuin[1] == 'a') {
+		ui_modify_account(&app_config.rtp_cfg);
 	    } else {
 		printf("Invalid input %s\n", menuin);
 	    }

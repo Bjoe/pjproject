@@ -818,8 +818,36 @@ static pj_status_t cmd_del_account(pj_cli_cmd_val *cval)
 /* Modify account */
 static pj_status_t cmd_mod_account(pj_cli_cmd_val *cval)
 {
-    PJ_UNUSED_ARG(cval);
-    return PJ_SUCCESS;
+    pjsua_acc_config acc_cfg;
+    pj_status_t status;
+    int i;
+
+    i = my_atoi(cval->argv[1].ptr);
+
+    if (!pjsua_acc_is_valid(i)) {
+	printf("Invalid account id %d\n", i);
+	return -1;
+    }
+
+    pjsua_acc_config_default(&acc_cfg);
+    acc_cfg.id = cval->argv[2];
+    acc_cfg.reg_uri = cval->argv[3];
+    acc_cfg.cred_count = 1;
+    acc_cfg.cred_info[0].scheme = pj_str("Digest");
+    acc_cfg.cred_info[0].realm = cval->argv[4];
+    acc_cfg.cred_info[0].username = cval->argv[5];
+    acc_cfg.cred_info[0].data_type = 0;
+    acc_cfg.cred_info[0].data = cval->argv[6];
+
+    acc_cfg.rtp_cfg = app_config.rtp_cfg;
+    app_config_init_video(&acc_cfg);
+
+    status = pjsua_acc_modify(i, &acc_cfg);
+    if (status != PJ_SUCCESS) {
+	pjsua_perror(THIS_FILE, "Error modify account", status);
+    }
+
+    return status;
 }
 
 /* Register account */
