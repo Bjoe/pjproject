@@ -816,6 +816,7 @@ static pj_status_t cmd_mod_account(pj_cli_cmd_val *cval)
 {
     pjsua_acc_config acc_cfg;
     pj_status_t status;
+    pj_pool_t *tmp_pool;
     int i;
 
     i = my_atoi(cval->argv[1].ptr);
@@ -825,7 +826,10 @@ static pj_status_t cmd_mod_account(pj_cli_cmd_val *cval)
 	return -1;
     }
 
-    pjsua_acc_config_default(&acc_cfg);
+    tmp_pool = pjsua_pool_create("tmp-pjsua", 1000, 1000);
+
+    pjsua_acc_get_config(i, tmp_pool, &acc_cfg);
+
     acc_cfg.id = cval->argv[2];
     acc_cfg.reg_uri = cval->argv[3];
     acc_cfg.cred_count = 1;
@@ -835,14 +839,15 @@ static pj_status_t cmd_mod_account(pj_cli_cmd_val *cval)
     acc_cfg.cred_info[0].data_type = 0;
     acc_cfg.cred_info[0].data = cval->argv[6];
 
-    acc_cfg.rtp_cfg = app_config.rtp_cfg;
     app_config_init_video(&acc_cfg);
+    acc_cfg.rtp_cfg = app_config.rtp_cfg;
 
     status = pjsua_acc_modify(i, &acc_cfg);
     if (status != PJ_SUCCESS) {
 	pjsua_perror(THIS_FILE, "Error modify account", status);
     }
 
+    pj_pool_release(tmp_pool);
     return status;
 }
 
