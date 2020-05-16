@@ -894,7 +894,8 @@ static void on_transport_state(pjsip_transport *tp,
 	break;
 
     case PJSIP_TP_STATE_DESTROY:
-	sleep(1);
+	PJ_LOG(3,(THIS_FILE, "Sleep 1 sec and destroy...."));
+	pj_thread_sleep(1000);
 	break;
 
     default:

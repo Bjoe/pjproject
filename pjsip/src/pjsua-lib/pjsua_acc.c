@@ -809,8 +809,8 @@ PJ_DEF(pj_status_t) pjsua_acc_modify( pjsua_acc_id acc_id,
     pjsip_route_hdr global_route;
     pjsip_route_hdr local_route;
     pj_str_t acc_proxy[PJSUA_ACC_MAX_PROXIES];
-    pj_bool_t update_reg = PJ_FALSE;
-    pj_bool_t unreg_first = PJ_FALSE;
+    pj_bool_t update_reg = 1;//PJ_FALSE;
+    pj_bool_t unreg_first = 1;//PJ_FALSE;
     pj_bool_t update_mwi = PJ_FALSE;
     pj_status_t status = PJ_SUCCESS;
 
@@ -1386,6 +1386,7 @@ PJ_DEF(pj_status_t) pjsua_acc_modify( pjsua_acc_id acc_id,
 	}
 	if (acc->regc != NULL) {
 	    pjsip_regc_destroy(acc->regc);
+	    pj_thread_sleep(500);
 	    acc->regc = NULL;
 	    acc->contact.slen = 0;
 	    acc->reg_mapped_addr.slen = 0;
